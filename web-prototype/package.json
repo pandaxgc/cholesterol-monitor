@@ -1,0 +1,12 @@
+{
+  "name": "app-prd",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "血脂账本 — cholesterol-monitor PRD v0.2 的可点击 Web 原型",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=22.13" }
+}
