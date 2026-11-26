@@ -40,7 +40,7 @@ struct RootView: View {
                 reschedule()
             }
         }
-        .onChange(of: store.entries.count) { reschedule() }
+        .onChange(of: store.entries) { reschedule() }
         .onChange(of: store.settings.reminderEnabled) { reschedule() }
         .onChange(of: store.settings.reminderTime) { reschedule() }
         .onReceive(clock) { _ in store.tick() }
