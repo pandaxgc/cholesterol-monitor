@@ -3,7 +3,10 @@ import Foundation
 
 public enum Fmt {
     /// 四舍五入，.5 向正无穷取整。
-    public static func round(_ x: Double) -> Int { Int((x + 0.5).rounded(.down)) }
+    public static func round(_ x: Double) -> Int {
+        guard x.isFinite else { return 0 }
+        return Int((x + 0.5).rounded(.down))
+    }
 
     public static func sat(_ g: Double) -> String { "约 \(round(g)) g" }
     public static func chol(_ mg: Double) -> String { "约 \(round(mg / 10) * 10) mg" }

@@ -232,8 +232,8 @@ private struct GramsField: View {
         .onChange(of: grams) { if !focused { text = Fmt.number(grams) } }
         .onChange(of: focused) {
             guard !focused else { return }
-            let v = Double(Fmt.round(Double(text) ?? 0))
-            commit(v)
+            guard let raw = Double(text), raw.isFinite else { text = Fmt.number(grams); return }
+            commit(Double(Fmt.round(raw)))
         }
         .toolbar {
             if focused {
