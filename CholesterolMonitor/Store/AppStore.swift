@@ -93,8 +93,31 @@ enum ResetMode {
 
     // MARK: 快照
 
-    private func commit() {
-        do { try context.save() } catch { lastError = "保存失败：\(error.localizedDescription)" }
+    /// 写盘失败时回滚到上次保存的状态，界面不展示未保存的数据。
+    @discardableResult
+    private func commit() -> Bool {
+        var saved = true
+        do { try context.save() } catch {
+            saved = false
+            context.rollback()
+            reloadTables()
+            lastError = "保存失败：\(error.localizedDescription)。刚才的改动没有保存。"
+        }
+        publish()
+        return saved
+    }
+
+    private func reloadTables() {
+        entryTable.reload()
+        oneTouchTable.reload()
+        limitTable.reload()
+        dayMetaTable.reload()
+        labTable.reload()
+        adviceTable.reload()
+        settingsTable.reload()
+    }
+
+    private func publish() {
         entries = entryTable.values.sorted { ($0.createdAt, $0.id) < ($1.createdAt, $1.id) }
         oneTouch = oneTouchTable.values.sorted { ($0.sortOrder, $0.id) < ($1.sortOrder, $1.id) }
         limits = limitTable.values.sorted { $0.sortOrder < $1.sortOrder }.map(\.limit)
@@ -165,10 +188,11 @@ enum ResetMode {
     // MARK: 记录
 
     @discardableResult
-    func addEntry(day: String, meal: Meal, food: Food, servingLabel: String, multiplier: Double, source: EntrySource) -> AddResult {
+    /// `grams` 为空时按当前量具校准换算；复制已有记录时传入原克数。
+    func addEntry(day: String, meal: Meal, food: Food, servingLabel: String, multiplier: Double, grams: Double? = nil, source: EntrySource) -> AddResult {
         let serving = food.serving(servingLabel) ?? food.defaultServingValue
         let e = Entry(id: uid("entry"), day: day, meal: meal, foodId: food.id, servingLabel: serving.label, multiplier: multiplier,
-                      grams: serving.grams * multiplier, source: source, createdAt: Date())
+                      grams: grams ?? serving.grams * multiplier, source: source, createdAt: Date())
         let m = Ledger.mergeEntry(entries, e)
         entryTable.put(m.entry)
         commit()
@@ -183,9 +207,12 @@ enum ResetMode {
         let serving = food.serving(servingLabel) ?? food.defaultServingValue
         var next = entry
         next.meal = meal
-        next.servingLabel = serving.label
-        next.multiplier = multiplier
-        next.grams = serving.grams * multiplier
+        // 只改餐次时保留原克数，不被之后的量具校准改写
+        if serving.label != entry.servingLabel || multiplier != entry.multiplier {
+            next.servingLabel = serving.label
+            next.multiplier = multiplier
+            next.grams = serving.grams * multiplier
+        }
         let m = Ledger.mergeEntry(entries.filter { $0.id != entry.id }, next)
         if m.merged { entryTable.delete(entry.id) }
         entryTable.put(m.entry)
@@ -262,12 +289,13 @@ enum ResetMode {
         commit()
     }
 
-    func saveLab(_ lab: LabResult) {
+    @discardableResult
+    func saveLab(_ lab: LabResult) -> Bool {
         var l = lab
         if l.id.isEmpty { l.id = uid("lab") }
         l.demo = false
         labTable.put(l)
-        commit()
+        return commit()
     }
 
     func removeLab(_ id: String) {

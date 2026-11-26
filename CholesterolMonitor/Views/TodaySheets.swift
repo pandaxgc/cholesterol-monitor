@@ -137,7 +137,7 @@ struct EntryMenuSheet: View {
                             HStack(spacing: 6) {
                                 ForEach(Meal.allCases.filter { $0 != entry.meal }) { m in
                                     Button(m.label) {
-                                        let r = store.addEntry(day: entry.day, meal: m, food: food, servingLabel: entry.servingLabel, multiplier: entry.multiplier, source: .search)
+                                        let r = store.addEntry(day: entry.day, meal: m, food: food, servingLabel: entry.servingLabel, multiplier: entry.multiplier, grams: entry.grams, source: .search)
                                         dismiss()
                                         ToastCenter.shared.show("已复制到\(m.label)", undo: r.undo)
                                     }

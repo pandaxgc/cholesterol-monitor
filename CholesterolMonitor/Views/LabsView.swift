@@ -219,7 +219,7 @@ struct LabFormView: View {
         l.date = day
         for (i, f) in fields.enumerated() { l[keyPath: f.0] = parsed[i] }
         l.note = note.trimmingCharacters(in: .whitespaces)
-        store.saveLab(l)
+        guard store.saveLab(l) else { return }
         dismiss()
         ToastCenter.shared.show("已保存化验结果")
     }

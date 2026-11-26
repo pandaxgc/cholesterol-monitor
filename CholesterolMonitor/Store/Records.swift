@@ -261,6 +261,11 @@ enum Persistence {
 
     init(_ context: ModelContext) {
         self.context = context
+        reload()
+    }
+
+    func reload() {
+        records = [:]
         for r in (try? context.fetch(FetchDescriptor<R>())) ?? [] { records[R.key(of: r.value)] = r }
     }
 
