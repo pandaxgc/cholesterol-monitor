@@ -20,13 +20,18 @@ struct CholesterolMonitorApp: App {
         } else {
             defaults = .standard
         }
+        var openError: Error?
         do {
             container = try Persistence.makeContainer(inMemory: testing)
         } catch {
-            // 数据库无法打开时退回内存库，避免启动即崩溃；界面会提示
+            // 数据库无法打开时退回内存库，避免启动即崩溃，并提示这次的记录不会保存
+            openError = error
             container = try! Persistence.makeContainer(inMemory: true)
         }
         let store = AppStore(container: container)
+        if let openError {
+            store.lastError = "无法打开本机数据库：\(openError.localizedDescription)。这次打开期间的记录不会保存，请退出后重新打开 App。"
+        }
         let prefs = Prefs(defaults: defaults)
         if testing {
             if args.contains("-demo") { store.reset(.demo) }
