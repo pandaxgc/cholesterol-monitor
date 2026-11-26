@@ -30,8 +30,15 @@ public enum Days {
         String(format: "%04d-%02d-%02d", y, m, d)
     }
 
+    /// 日期键一律用公历，与 `add`/`diff` 的换算一致，不随系统日历设置变化。
+    public static var gregorian: Calendar {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = .current
+        return c
+    }
+
     /// 04:00 之前的记录归属前一天。
-    public static func logicalDay(_ date: Date = Date(), cutoffHour: Int = 4, calendar: Calendar = .current) -> String {
+    public static func logicalDay(_ date: Date = Date(), cutoffHour: Int = 4, calendar: Calendar = gregorian) -> String {
         let c = calendar.dateComponents([.year, .month, .day], from: date.addingTimeInterval(-Double(cutoffHour) * 3600))
         return format(c.year ?? 1970, c.month ?? 1, c.day ?? 1)
     }
@@ -55,13 +62,13 @@ public enum Days {
         (0..<max(0, count)).map { add(end, $0 - count + 1) }
     }
 
-    public static func date(_ day: String, calendar: Calendar = .current) -> Date {
+    public static func date(_ day: String, calendar: Calendar = gregorian) -> Date {
         let p = day.split(separator: "-").map { Int($0) ?? 0 }
         guard p.count == 3 else { return Date() }
         return calendar.date(from: DateComponents(year: p[0], month: p[1], day: p[2], hour: 12)) ?? Date()
     }
 
-    public static func day(of date: Date, calendar: Calendar = .current) -> String {
+    public static func day(of date: Date, calendar: Calendar = gregorian) -> String {
         logicalDay(date, cutoffHour: 0, calendar: calendar)
     }
 }

@@ -24,11 +24,11 @@ enum Reminders {
         guard enabled else { return }
         let hm = time.split(separator: ":").compactMap { Int($0) }
         guard hm.count == 2 else { return }
-        let cal = Calendar.current
+        let cal = Days.gregorian
         let start = Days.date(Days.logicalDay(now))
         for offset in offsets where !(offset == 0 && skipToday) {
             guard let day = cal.date(byAdding: .day, value: offset, to: start) else { continue }
-            var c = cal.dateComponents([.year, .month, .day], from: day)
+            var c = cal.dateComponents([.calendar, .timeZone, .year, .month, .day], from: day)
             c.hour = hm[0]
             c.minute = hm[1]
             guard let fire = cal.date(from: c), fire > now else { continue }
