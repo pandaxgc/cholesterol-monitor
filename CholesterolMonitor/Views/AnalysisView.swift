@@ -27,7 +27,7 @@ struct AnalysisView: View {
                     .padding(.top, 12)
                     .accessibilityIdentifier("analysis-range")
                 CardGroup {
-                    LedgerRow(title: "排除离群日", sub: "离群日仍显示在热力图上，但不计入趋势、来源和小结", lead: { EmptyView() }, trailing: {
+                    LedgerRow(title: "排除离群日", lead: { EmptyView() }, trailing: {
                         Toggle("排除离群日", isOn: $prefs.excludeOutliers).labelsHidden().tint(Theme.accent)
                     })
                 }
@@ -63,7 +63,7 @@ struct AnalysisView: View {
         CardGroup(title: "趋势", headline: true) {
             TrendChart(days: days, totals: totals, allTotals: allTotals, outliers: store.outliers, exclude: prefs.excludeOutliers, budget: budget)
         }
-        CardGroup(title: "支出来源", footer: "按食物类别累计饱和脂肪，显示前 5 项。占比取整到 5%。", headline: true, separatorInset: Theme.cellX + CGFloat(prefs.emojiSize) * 1.25 + 12) {
+        CardGroup(title: "支出来源", headline: true, separatorInset: Theme.cellX + CGFloat(prefs.emojiSize) * 1.25 + 12) {
             ForEach(ranking.prefix(5).filter { $0.sat > 0 }) { r in
                 let cat = store.categories[r.category]
                 LedgerRow(title: cat?.name ?? r.category, value: "约 \(Fmt.roundPct5(r.share))%", lead: { EmojiIcon(cat?.emoji ?? "") }, trailing: { EmptyView() })
@@ -76,10 +76,10 @@ struct AnalysisView: View {
                         .frame(height: 6)
                         .padding(.leading, Theme.cellX + CGFloat(prefs.emojiSize) * 1.25 + 12)
                         .padding(.trailing, Theme.cellX + 70)
-                        .padding(.bottom, 9)
+                        .padding(.bottom, 8)
                         .accessibilityHidden(true)
                     }
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 8)
             }
         }
         LimitExecution(days: days)
@@ -97,7 +97,6 @@ private struct LimitExecution: View {
         var w = Days.weekStart(days[0])
         while w <= store.today { weeks.append(w); w = Days.add(w, 7) }
         return CardGroup(title: "限额执行",
-                         footer: range == 7 ? "限额按自然周计数，不受“排除离群日”影响。" : "每个数字是一个自然周的次数，带 ! 的是超出上限的周。限额不受“排除离群日”影响。",
                          headline: true, separatorInset: Theme.cellX + CGFloat(prefs.emojiSize) * 1.25 + 12) {
             if store.limits.isEmpty { LedgerRow(title: "还没有设置限额", style: .guide) }
             ForEach(store.limits) { limit in
@@ -108,21 +107,21 @@ private struct LimitExecution: View {
                     EmojiIcon(cat?.emoji ?? "")
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(cat?.name ?? limit.category).font(.body.weight(.semibold))
+                            Text(cat?.name ?? limit.category).font(.gBody.weight(.semibold))
                             Spacer()
                             Amount(range == 7 ? "本周 \(counts.last ?? 0) / \(limit.maxCount) 次" : "\(ok) / \(weeks.count) 周在限额内")
                         }
                         if range == 7 {
-                            Text("上限每周 \(limit.maxCount) 次").font(.footnote).foregroundStyle(Theme.textMuted)
+                            Text("上限每周 \(limit.maxCount) 次").font(.gSmall).foregroundStyle(Theme.textMuted)
                         } else {
-                            FlowLayout(spacing: 3, lineSpacing: 3) {
+                            FlowLayout(spacing: 4, lineSpacing: 3) {
                                 ForEach(Array(counts.enumerated()), id: \.offset) { _, c in
                                     let over = c > limit.maxCount
                                     Text(over ? "\(c)!" : "\(c)")
-                                        .font(.footnote.monospacedDigit().weight(over ? .bold : .regular))
-                                        .foregroundStyle(over ? Theme.warnText : Color.primary)
+                                        .font(.gSmall.monospacedDigit().weight(over ? .bold : .regular))
+                                        .foregroundStyle(over ? Theme.warnText : Theme.text)
                                         .frame(minWidth: 22)
-                                        .padding(.vertical, 1)
+                                        .padding(.vertical, 4)
                                         .background {
                                             RoundedRectangle(cornerRadius: 4).fill(over ? Color.clear : Theme.fill)
                                             if over { RoundedRectangle(cornerRadius: 4).strokeBorder(Theme.warn, lineWidth: 1.5) }
@@ -163,21 +162,21 @@ private struct HeatmapCard: View {
 
     @ViewBuilder private var grid: some View {
         if days.count <= 7 {
-            HStack(spacing: 6) { ForEach(days, id: \.self) { cell($0).frame(maxWidth: 44) } }
+            HStack(spacing: 8) { ForEach(days, id: \.self) { cell($0).frame(maxWidth: 44) } }
         } else {
             let start = Days.weekStart(days[0])
             let end = Days.add(Days.weekStart(days[days.count - 1]), 6)
             let cols = (Days.diff(end, start) + 1) / 7
-            HStack(alignment: .top, spacing: 6) {
-                VStack(spacing: 3) {
+            HStack(alignment: .top, spacing: 8) {
+                VStack(spacing: 4) {
                     ForEach(Array(["一", "", "三", "", "五", "", "日"].enumerated()), id: \.offset) { _, t in
-                        Text(t).font(.caption2).foregroundStyle(Theme.textMuted).frame(maxHeight: .infinity)
+                        Text(t).font(.gSmall).foregroundStyle(Theme.textMuted).frame(maxHeight: .infinity)
                     }
                 }
                 .accessibilityHidden(true)
-                HStack(spacing: 3) {
+                HStack(spacing: 4) {
                     ForEach(0..<cols, id: \.self) { c in
-                        VStack(spacing: 3) {
+                        VStack(spacing: 4) {
                             ForEach(0..<7, id: \.self) { r in
                                 let d = Days.add(start, c * 7 + r)
                                 if d < days[0] || d > days[days.count - 1] {
@@ -203,7 +202,7 @@ private struct HeatmapCard: View {
             RoundedRectangle(cornerRadius: 4, style: .continuous)
                 .fill(Theme.heat(level))
                 .overlay { if isOut { Stripes().clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous)) } }
-                .overlay { if picked == d { RoundedRectangle(cornerRadius: 5).stroke(Color.primary, lineWidth: 2).padding(-1.5) } }
+                .overlay { if picked == d { RoundedRectangle(cornerRadius: 5).stroke(Theme.text, lineWidth: 2).padding(-1.5) } }
                 .aspectRatio(1, contentMode: .fit)
         }
         .buttonStyle(.plain)
@@ -216,31 +215,31 @@ private struct HeatmapCard: View {
             ForEach(1...5, id: \.self) { RoundedRectangle(cornerRadius: 3).fill(Theme.heat($0)).frame(width: 12, height: 12) }
             Text("多")
             RoundedRectangle(cornerRadius: 3).fill(Theme.heat(2)).overlay { Stripes().clipShape(RoundedRectangle(cornerRadius: 3)) }
-                .frame(width: 12, height: 12).padding(.leading, 10)
+                .frame(width: 12, height: 12).padding(.leading, 8)
             Text("离群日")
         }
-        .font(.caption)
+        .font(.gSmall)
         .foregroundStyle(Theme.textMuted)
         .accessibilityHidden(true)
     }
 
     @ViewBuilder private var caption: some View {
         if let p = picked, days.contains(p) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Text("\(Days.label(p))：\(totals[p].map { "饱和脂肪\(Fmt.sat($0.sat))" } ?? "没有记录")\(outliers.contains(p) ? " · 离群日" : "")")
                 Button("查看这天") {
                     store.setDay(p)
                     store.tab = .today
                 }
-                .font(.footnote.weight(.medium))
+                .font(.gSmall.weight(.medium))
                 .foregroundStyle(Theme.accent)
             }
-            .font(.footnote)
+            .font(.gSmall)
             .foregroundStyle(Theme.textMuted)
             .frame(minHeight: 36, alignment: .leading)
         } else {
             Text("颜色深浅按你自己的分布分成五档，不用固定阈值。点一格查看当天。")
-                .font(.footnote)
+                .font(.gSmall)
                 .foregroundStyle(Theme.textMuted)
                 .lineSpacing(2)
                 .frame(minHeight: 36, alignment: .topLeading)
@@ -260,7 +259,7 @@ private struct Stripes: View {
                 p.addLine(to: CGPoint(x: x + size.height, y: 0))
                 x += 4.5
             }
-            ctx.stroke(p, with: .color(.primary), lineWidth: 1.4)
+            ctx.stroke(p, with: .color(Theme.text), lineWidth: 1.4)
         }
         .allowsHitTesting(false)
     }
@@ -290,9 +289,9 @@ private struct TrendChart: View {
         let base = days.compactMap { d in
             Ledger.baseline(allTotals, outliers: outliers, beforeDay: Days.add(d, 1)).map { Point(date: Days.date(d), value: $0.sat) }
         }
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             if pts.count < 2 {
-                Text("记录满两天后，这里会画出日支出折线。").font(.footnote).foregroundStyle(Theme.textMuted)
+                Text("记录满两天后，这里会画出日支出折线。").font(.gSmall).foregroundStyle(Theme.textMuted)
             } else {
                 let mean = pts.reduce(0) { $0 + $1.value } / Double(pts.count)
                 let maxV = max(budget, pts.map(\.value).max() ?? 0, base.map(\.value).max() ?? 0) * 1.08
@@ -300,8 +299,8 @@ private struct TrendChart: View {
                     RuleMark(y: .value("预算", budget))
                         .foregroundStyle(Theme.warn)
                         .lineStyle(StrokeStyle(lineWidth: 1.2, dash: [6, 4]))
-                        .annotation(position: .top, alignment: .leading, spacing: 2) {
-                            Text("预算 \(Fmt.number(budget)) g").font(.caption2.weight(.medium)).foregroundStyle(Theme.warnText)
+                        .annotation(position: .top, alignment: .leading, spacing: 4) {
+                            Text("预算 \(Fmt.number(budget)) g").font(.gSmall.weight(.medium)).foregroundStyle(Theme.warnText)
                         }
                     if base.count > 1 {
                         ForEach(base) { p in
@@ -327,7 +326,7 @@ private struct TrendChart: View {
                 .chartXAxis {
                     AxisMarks(values: [Days.date(days[0]), Days.date(days[days.count - 1])]) { v in
                         AxisValueLabel(anchor: v.index == 0 ? .topLeading : .topTrailing) {
-                            if let d = v.as(Date.self) { Text(Days.label(Days.day(of: d))).font(.caption2) }
+                            if let d = v.as(Date.self) { Text(Days.label(Days.day(of: d))).font(.gSmall) }
                         }
                     }
                 }
@@ -339,7 +338,7 @@ private struct TrendChart: View {
                     legend("14 天水位", Theme.textMuted, dash: [2, 4])
                     legend("预算", Theme.warn, dash: [6, 4])
                 }
-                .font(.caption)
+                .font(.gSmall)
                 .foregroundStyle(Theme.textMuted)
                 .accessibilityHidden(true)
             }
@@ -349,7 +348,7 @@ private struct TrendChart: View {
     }
 
     private func legend(_ text: String, _ color: Color, dash: [CGFloat]) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             Path { p in p.move(to: CGPoint(x: 0, y: 4)); p.addLine(to: CGPoint(x: 22, y: 4)) }
                 .stroke(color, style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: dash))
                 .frame(width: 22, height: 8)

@@ -6,7 +6,7 @@ import SwiftUI
 // MARK: 数值排版
 
 /// 数字加粗、主文本色；“约”和单位同字号，只用灰色降一级。没有数字的文本原样显示。
-func amountText(_ text: String, font: Font = .body, number: Color = .primary, unit: Color = Theme.textMuted,
+func amountText(_ text: String, font: Font = .gBody, number: Color = Theme.text, unit: Color = Theme.textMuted,
                 weight: Font.Weight = .semibold, unitFont: Font? = nil) -> AttributedString {
     var out = AttributedString()
     guard text.contains(where: \.isNumber) else {
@@ -36,17 +36,17 @@ func amountText(_ text: String, font: Font = .body, number: Color = .primary, un
 
 struct Amount: View {
     let text: String
-    var font: Font = .body
+    var font: Font = .gBody
     var warn = false
 
-    init(_ text: String, font: Font = .body, warn: Bool = false) {
+    init(_ text: String, font: Font = .gBody, warn: Bool = false) {
         self.text = text
         self.font = font
         self.warn = warn
     }
 
     var body: some View {
-        Text(amountText(text, font: font, number: warn ? Theme.warnText : .primary))
+        Text(amountText(text, font: font, number: warn ? Theme.warnText : Theme.text))
             .lineLimit(1)
             .fixedSize()
     }
@@ -60,15 +60,11 @@ struct GradeBadge: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            shape.frame(width: 11, height: 11)
+            shape.frame(width: 12, height: 12)
             Text(grade.label)
         }
-        .font(.caption2.weight(grade == .c ? .semibold : .medium))
-        .foregroundStyle(grade == .c ? Color.primary : Theme.textMuted)
-        .padding(.leading, 5)
-        .padding(.trailing, 7)
-        .padding(.vertical, 3)
-        .background(Theme.fill, in: Capsule())
+        .font(.gSmall.weight(grade == .c ? .semibold : .regular))
+        .foregroundStyle(grade == .c ? Theme.text : Theme.textMuted)
         .fixedSize()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(grade.label)
@@ -90,27 +86,19 @@ struct TagLabel: View {
 
     var body: some View {
         Text(text)
-            .font(.caption2.weight(.semibold))
+            .font(.gSmall.weight(.medium))
             .foregroundStyle(Theme.textMuted)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
-            .background(Theme.fill, in: Capsule())
             .fixedSize()
     }
 }
 
-/// 彩色圆角方块图标（设置与功能行）。
+/// 功能行的图标：中性灰，不加底块。
 struct IconTile: View {
     let symbol: String
     var tone: TileTone = .accent
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(tone == .accent ? Theme.accentFg : .white)
-            .frame(width: 30, height: 30)
-            .background(tone.color, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .accessibilityHidden(true)
+        Icon(symbol).foregroundStyle(Theme.textSecondary)
     }
 }
 
@@ -120,11 +108,7 @@ struct RowIcon: View {
     var danger = false
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 19, weight: .regular))
-            .foregroundStyle(danger ? Theme.warnText : Theme.accent)
-            .frame(width: 28)
-            .accessibilityHidden(true)
+        Icon(symbol).foregroundStyle(danger ? Theme.warnText : Theme.textSecondary)
     }
 }
 
@@ -167,25 +151,20 @@ struct CardGroup<Content: View>: View {
                 HStack(alignment: .firstTextBaseline, spacing: 12) {
                     if let title {
                         Text(title)
-                            .font(headline ? Theme.groupTitle : .footnote.weight(.semibold))
-                            .foregroundStyle(headline ? Color.primary : Theme.textMuted)
+                            .font(.gTitle)
+                            .foregroundStyle(Theme.text)
                             .accessibilityAddTraits(.isHeader)
                     }
                     if let tag { TagLabel(tag) }
                     Spacer(minLength: 0)
-                    if let right { Amount(right, font: headline ? .subheadline : .footnote) }
+                    if let right { Amount(right, font: .gSmall) }
                 }
-                .padding(.horizontal, headline ? 8 : Theme.cellX)
-                .padding(.bottom, headline ? 10 : 7)
+                .padding(.horizontal, 4)
+                .padding(.bottom, 12)
             }
             VStack(spacing: 0) {
                 Group(subviews: content) { subviews in
-                    ForEach(Array(subviews.enumerated()), id: \.offset) { i, v in
-                        if i > 0 {
-                            Rectangle().fill(Theme.border).frame(height: 1 / 3).padding(.leading, separatorInset).padding(.trailing, Theme.cellX)
-                        }
-                        v
-                    }
+                    ForEach(Array(subviews.enumerated()), id: \.offset) { _, v in v }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -193,16 +172,16 @@ struct CardGroup<Content: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
             if let footer {
                 Text(footer)
-                    .font(.footnote)
+                    .font(.gSmall)
                     .foregroundStyle(Theme.textMuted)
-                    .lineSpacing(2)
-                    .padding(.horizontal, Theme.cellX)
-                    .padding(.top, 8)
+                    .lineSpacing(4)
+                    .padding(.horizontal, 4)
+                    .padding(.top, 12)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.horizontal, Theme.gutter)
-        .padding(.top, 28)
+        .padding(.top, 40)
     }
 }
 
@@ -214,11 +193,12 @@ struct CellText: View {
 
     var body: some View {
         Text(text)
-            .font(.body)
+            .font(.gBody)
+            .foregroundStyle(Theme.text)
             .lineSpacing(4)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Theme.cellX)
-            .padding(.vertical, 12)
+            .padding(.vertical, 16)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -233,7 +213,7 @@ enum RowStyle {
 struct LedgerRow<Lead: View, Trailing: View>: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var title: String
-    var titleColor: Color = .primary
+    var titleColor: Color = Theme.text
     var detail: String?
     var grade: Grade?
     var tag: String?
@@ -247,14 +227,14 @@ struct LedgerRow<Lead: View, Trailing: View>: View {
     @ViewBuilder var trailing: Trailing
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             lead.opacity(style == .prefill ? 0.5 : 1)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 titleLine
                 if let subAttributed {
-                    Text(subAttributed).font(.footnote)
+                    Text(subAttributed).font(.gSmall)
                 } else if let sub {
-                    Text(sub).font(.footnote).foregroundStyle(Theme.textMuted)
+                    Text(sub).font(.gSmall).foregroundStyle(Theme.textMuted)
                 }
                 // 大字号下数值换到第二行
                 if typeSize.isAccessibilitySize, let value { Amount(value, warn: valueWarn).opacity(style == .prefill ? 0.5 : 1) }
@@ -263,28 +243,25 @@ struct LedgerRow<Lead: View, Trailing: View>: View {
             if !typeSize.isAccessibilitySize, let value { Amount(value, warn: valueWarn).opacity(style == .prefill ? 0.5 : 1) }
             trailing
             if chevron {
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Theme.textMuted.opacity(0.55))
-                    .accessibilityHidden(true)
+                Icon("chevron.right").foregroundStyle(Theme.textMuted)
             }
         }
         .padding(.horizontal, Theme.cellX)
         .padding(.vertical, Theme.cellY)
-        .frame(minHeight: 52)
+        .frame(minHeight: 56)
         .contentShape(Rectangle())
     }
 
     private var titleLine: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(style == .guide || style == .advice ? .body : .body.weight(.semibold))
+                .font(style == .guide || style == .advice ? .gBody : .gBody.weight(.semibold))
                 .foregroundStyle(style == .guide ? Theme.textSecondary : titleColor)
                 .lineSpacing(style == .advice ? 4 : 0)
                 .opacity(style == .prefill ? 0.5 : 1)
                 .fixedSize(horizontal: false, vertical: true)
             if let detail {
-                Text(detail).font(.subheadline).foregroundStyle(Theme.textSecondary).lineLimit(1).layoutPriority(-1)
+                Text(detail).font(.gSmall).foregroundStyle(Theme.textSecondary).lineLimit(1).layoutPriority(-1)
             }
             if let grade { GradeBadge(grade: grade).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 4 } }
             if let tag { TagLabel(tag).alignmentGuide(.firstTextBaseline) { $0[.bottom] - 5 } }
@@ -293,7 +270,7 @@ struct LedgerRow<Lead: View, Trailing: View>: View {
 }
 
 extension LedgerRow where Lead == EmptyView, Trailing == EmptyView {
-    init(title: String, titleColor: Color = .primary, detail: String? = nil, grade: Grade? = nil, tag: String? = nil, sub: String? = nil,
+    init(title: String, titleColor: Color = Theme.text, detail: String? = nil, grade: Grade? = nil, tag: String? = nil, sub: String? = nil,
          subAttributed: AttributedString? = nil, value: String? = nil, valueWarn: Bool = false, chevron: Bool = false, style: RowStyle = .normal) {
         self.init(title: title, titleColor: titleColor, detail: detail, grade: grade, tag: tag, sub: sub, subAttributed: subAttributed,
                   value: value, valueWarn: valueWarn, chevron: chevron, style: style, lead: { EmptyView() }, trailing: { EmptyView() })
@@ -301,7 +278,7 @@ extension LedgerRow where Lead == EmptyView, Trailing == EmptyView {
 }
 
 extension LedgerRow where Trailing == EmptyView {
-    init(title: String, titleColor: Color = .primary, detail: String? = nil, grade: Grade? = nil, tag: String? = nil, sub: String? = nil,
+    init(title: String, titleColor: Color = Theme.text, detail: String? = nil, grade: Grade? = nil, tag: String? = nil, sub: String? = nil,
          subAttributed: AttributedString? = nil, value: String? = nil, valueWarn: Bool = false, chevron: Bool = false, style: RowStyle = .normal,
          @ViewBuilder lead: () -> Lead) {
         self.init(title: title, titleColor: titleColor, detail: detail, grade: grade, tag: tag, sub: sub, subAttributed: subAttributed,
@@ -335,21 +312,18 @@ struct PillSegmented<T: Hashable>: View {
     var label: String
 
     var body: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 4) {
             ForEach(Array(options.enumerated()), id: \.offset) { _, o in
                 let on = o.0 == selection
                 Button { selection = o.0 } label: {
                     Text(o.1)
-                        .font(.footnote.weight(on ? .semibold : .medium))
-                        .foregroundStyle(on ? Color.primary : Theme.textSecondary)
+                        .font(.gSmall.weight(on ? .semibold : .regular))
+                        .foregroundStyle(on ? Theme.text : Theme.textSecondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                        .frame(maxWidth: .infinity, minHeight: 32)
+                        .frame(maxWidth: .infinity, minHeight: 36)
                         .background {
-                            if on {
-                                Capsule().fill(Color(light: 0xFFFFFF, dark: 0x636366))
-                                    .overlay(Capsule().strokeBorder(Theme.border, lineWidth: 0.5))
-                            }
+                            if on { Capsule().fill(Color(light: 0xFFFFFF, dark: 0x48484A)) }
                         }
                         .contentShape(Capsule())
                 }
@@ -357,7 +331,7 @@ struct PillSegmented<T: Hashable>: View {
                 .accessibilityAddTraits(on ? .isSelected : [])
             }
         }
-        .padding(3)
+        .padding(4)
         .background(Theme.fill, in: Capsule())
         .accessibilityElement(children: .contain)
         .accessibilityLabel(label)
@@ -375,10 +349,10 @@ struct PillButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.body.weight(.semibold))
+            .font(.gBody.weight(.semibold))
             .foregroundStyle(foreground)
             .frame(maxWidth: .infinity, minHeight: 48)
-            .padding(.horizontal, 18)
+            .padding(.horizontal, 24)
             .background(background, in: Capsule())
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
@@ -406,9 +380,9 @@ struct ButtonRow<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        HStack(spacing: 10) { content }
+        HStack(spacing: 12) { content }
             .padding(.horizontal, Theme.gutter)
-            .padding(.top, 16)
+            .padding(.top, 24)
     }
 }
 
@@ -424,12 +398,12 @@ struct SheetNote: View {
 
     var body: some View {
         Text(text)
-            .font(strong ? .body : .subheadline)
-            .foregroundStyle(strong ? Color.primary : Theme.textSecondary)
+            .font(strong ? .gBody : .gSmall)
+            .foregroundStyle(strong ? Theme.text : Theme.textSecondary)
             .lineSpacing(4)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Theme.gutter + Theme.cellX)
-            .padding(.top, 6)
+            .padding(.horizontal, Theme.gutter + 4)
+            .padding(.top, 8)
             .fixedSize(horizontal: false, vertical: true)
     }
 }
@@ -448,14 +422,15 @@ struct SearchField: View {
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
             if !text.isEmpty {
-                Button { text = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.textMuted) }
+                Button { text = "" } label: { Icon("xmark.circle.fill", size: 20).foregroundStyle(Theme.textMuted) }
                     .buttonStyle(.plain)
                     .accessibilityLabel("清除搜索")
             }
         }
-        .padding(.horizontal, 18)
+        .font(.gBody)
+        .padding(.horizontal, 20)
         .frame(minHeight: 48)
-        .background(Theme.fill, in: Capsule())
+        .background(Theme.surface, in: Capsule())
     }
 }
 
@@ -466,36 +441,20 @@ struct DemoBanner: View {
 
     var body: some View {
         if store.settings.demo {
-            VStack(spacing: 0) {
-                HStack {
-                    Text("示例数据").foregroundStyle(Theme.textMuted)
-                    Spacer()
-                    Button("清空，开始记录") { confirm = true }
-                        .font(.footnote.weight(.medium))
-                        .foregroundStyle(Theme.accent)
-                        .accessibilityIdentifier("demo-clear")
-                }
-                .font(.footnote)
-                .padding(.horizontal, Theme.cellX)
-                .frame(minHeight: 36)
-                Rectangle().fill(Theme.border).frame(height: 1 / 3)
-                HStack(spacing: 14) {
-                    Image(systemName: "text.bubble.fill").font(.system(size: 26)).foregroundStyle(Color(red: 0xF5 / 255, green: 0xC5 / 255, blue: 0x42 / 255))
-                        .accessibilityHidden(true)
-                    Text("这里的饮食记录和化验值是演示生成的，不是真实数据。")
-                        .font(.body.weight(.semibold))
-                        .lineSpacing(3)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.horizontal, Theme.cellX)
-                .padding(.top, 14)
-                .padding(.bottom, 16)
+            HStack(spacing: 16) {
+                Text("示例数据").font(.gBody.weight(.semibold)).foregroundStyle(Theme.text)
+                Spacer(minLength: 0)
+                Button("清空，开始记录") { confirm = true }
+                    .font(.gSmall.weight(.medium))
+                    .foregroundStyle(Theme.accent)
+                    .accessibilityIdentifier("demo-clear")
             }
+            .padding(.horizontal, Theme.cellX)
+            .frame(minHeight: 56)
             .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
             .padding(.horizontal, Theme.gutter)
-            .padding(.top, 12)
+            .padding(.top, 16)
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("demo-banner")
             .clearDemoAlert(isPresented: $confirm)
@@ -529,8 +488,8 @@ private struct ClearDemoAlert: ViewModifier {
 
 /// 自动换行的横排布局。
 struct FlowLayout: Layout {
-    var spacing: CGFloat = 4
-    var lineSpacing: CGFloat = 4
+    var spacing: CGFloat = 8
+    var lineSpacing: CGFloat = 8
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
@@ -577,7 +536,7 @@ struct FlowLayout: Layout {
 
 /// 页面骨架：滚动内容 + 背景色。
 struct Page<Content: View>: View {
-    var bottomInset: CGFloat = 24
+    var bottomInset: CGFloat = 40
     @ViewBuilder var content: Content
 
     var body: some View {

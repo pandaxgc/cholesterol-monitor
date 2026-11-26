@@ -91,19 +91,19 @@ private struct ToastOverlay: View {
         if let item = center.item {
             HStack(spacing: 12) {
                 Text(item.text)
-                    .font(.subheadline.weight(.medium))
+                    .font(.gSmall.weight(.medium))
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if item.hasUndo {
                     Button("撤销") { center.performUndo() }
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 10)
+                        .font(.gSmall.weight(.semibold))
+                        .padding(.horizontal, 8)
                         .frame(minHeight: 36)
                         .accessibilityIdentifier("toast-undo")
                 }
             }
             .foregroundStyle(Theme.toastFg)
-            .padding(.leading, 18)
+            .padding(.leading, 16)
             .padding(.trailing, 8)
             .frame(minHeight: 46)
             .background(Theme.toastBg, in: Capsule())

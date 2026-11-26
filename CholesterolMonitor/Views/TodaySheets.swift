@@ -13,7 +13,7 @@ struct SourcesSheet: View {
                     SheetNote("这一天还没有记录。")
                 } else {
                     let items = c.spend.items.sorted { $0.n.sat > $1.n.sat }
-                    CardGroup(footer: "按贡献从高到低排列。数值为估算，已取整。", separatorInset: Theme.cellX + 47) {
+                    CardGroup(separatorInset: Theme.cellX + 47) {
                         ForEach(items) { i in
                             LedgerRow(title: i.food.name, sub: "\(i.entry.meal.label) · \(Fmt.servingText(i.entry))",
                                       value: "\(Fmt.sat(i.n.sat)) · 约 \(Fmt.roundPct5(c.spend.total.sat > 0 ? i.n.sat / c.spend.total.sat : 0))%") { EmojiIcon(i.food.emoji) }
@@ -35,7 +35,7 @@ struct LimitsSheet: View {
         let c = store.dayContext(store.day)
         SheetNav(title: "本周限额") {
             Page {
-                CardGroup(footer: "自然周（周一至周日）内计数；一餐内同一类别无论几样食物，只计 1 次。默认限额为产品建议值，不是指南原文。", separatorInset: Theme.cellX + 47) {
+                CardGroup(separatorInset: Theme.cellX + 47) {
                     ForEach(c.weekly) { w in
                         let cat = store.categories[w.limit.category]
                         let left = w.limit.maxCount - w.count
@@ -68,7 +68,7 @@ struct WhySheet: View {
                     }
                 }
                 CardGroup(title: "计算过程") { CellText(advice.why.calc) }
-                CardGroup(title: "依据", footer: "建议由固定规则生成，不使用生成式模型；同样的记录总会得到同样的建议。数值为估算。") { CellText(advice.why.source) }
+                CardGroup(title: "依据") { CellText(advice.why.source) }
             }
         }
         .presentationDetents([.large])
@@ -85,8 +85,7 @@ struct DayMenuSheet: View {
         let isOutlier = store.outliers.contains(store.day)
         SheetNav(title: dayTitle(store.day)) {
             Page {
-                SheetNote("离群日照常记录和显示，但不计入日常水位，也不触发当日建议。适合聚餐、节日这样的日子。")
-                CardGroup(separatorInset: Theme.cellX + 40) {
+                                CardGroup(separatorInset: Theme.cellX + 40) {
                     RowButton { withAnimation { picking.toggle() } } label: {
                         LedgerRow(title: "选择日期") { RowIcon(symbol: "calendar") }
                     }
@@ -134,15 +133,15 @@ struct EntryMenuSheet: View {
                         }
                         .accessibilityIdentifier("entry-edit")
                         LedgerRow(title: "复制到", lead: { RowIcon(symbol: "doc.on.doc") }, trailing: {
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 ForEach(Meal.allCases.filter { $0 != entry.meal }) { m in
                                     Button(m.label) {
                                         let r = store.addEntry(day: entry.day, meal: m, food: food, servingLabel: entry.servingLabel, multiplier: entry.multiplier, grams: entry.grams, source: .search)
                                         dismiss()
                                         ToastCenter.shared.show("已复制到\(m.label)", undo: r.undo)
                                     }
-                                    .font(.footnote.weight(.medium))
-                                    .foregroundStyle(Color.primary)
+                                    .font(.gSmall.weight(.medium))
+                                    .foregroundStyle(Theme.text)
                                     .padding(.horizontal, 12)
                                     .frame(minHeight: 34)
                                     .background(Theme.fill, in: Capsule())

@@ -13,12 +13,13 @@ struct RootView: View {
         @Bindable var store = store
         @Bindable var router = router
         TabView(selection: $store.tab) {
-            Tab("今日", systemImage: "doc.text.fill", value: AppTab.today) { TodayView() }
-            Tab("清单", systemImage: "list.bullet", value: AppTab.lists) { ListsView() }
-            Tab("分析", systemImage: "chart.bar.fill", value: AppTab.analysis) { AnalysisView() }
-            Tab("化验", systemImage: "flask.fill", value: AppTab.labs) { LabsView() }
+            Tab("今日", image: Icon.asset("doc.text.fill"), value: AppTab.today) { TodayView() }
+            Tab("清单", image: Icon.asset("list.bullet"), value: AppTab.lists) { ListsView() }
+            Tab("分析", image: Icon.asset("chart.bar.fill"), value: AppTab.analysis) { AnalysisView() }
+            Tab("化验", image: Icon.asset("flask.fill"), value: AppTab.labs) { LabsView() }
         }
         .tint(Theme.accent)
+        .font(.gBody)
         .sheet(item: $router.sheet) { route in
             SheetView(route: route)
                 .environment(store)

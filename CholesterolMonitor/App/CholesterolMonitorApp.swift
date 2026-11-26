@@ -10,6 +10,7 @@ struct CholesterolMonitorApp: App {
     private let container: ModelContainer
 
     init() {
+        Theme.registerFonts()
         let args = ProcessInfo.processInfo.arguments
         // 界面测试：内存数据库与独立的偏好，不碰真实数据
         let testing = args.contains("-uiTesting")

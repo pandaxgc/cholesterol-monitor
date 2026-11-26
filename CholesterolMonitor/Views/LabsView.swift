@@ -22,11 +22,11 @@ struct LabsView: View {
             Page(bottomInset: 40) {
                 DemoBanner()
                 Text(labNote)
-                    .font(.footnote)
+                    .font(.gSmall)
                     .foregroundStyle(Theme.textSecondary)
                     .lineSpacing(3)
                     .padding(.horizontal, Theme.gutter + Theme.cellX)
-                    .padding(.top, 14)
+                    .padding(.top, 16)
                     .fixedSize(horizontal: false, vertical: true)
                 ButtonRow {
                     Button("录入化验结果") { router.sheet = .labForm(nil) }
@@ -34,11 +34,10 @@ struct LabsView: View {
                         .accessibilityIdentifier("lab-add")
                 }
                 if let last {
-                    CardGroup(title: "历次结果", right: "mmol/L",
-                              footer: labs.count > 1 ? "折线为 \(labs.count) 次结果的走势，右侧是最近一次与上一次的数值。" : "再录入一次后，这里会画出走势。", headline: true) {
+                    CardGroup(title: "历次结果", right: "mmol/L", headline: true) {
                         ForEach(fields, id: \.1) { f in
                             LedgerRow(title: f.1, sub: f.2, lead: { EmptyView() }, trailing: {
-                                HStack(spacing: 10) {
+                                HStack(spacing: 8) {
                                     Spark(values: labs.map { $0[keyPath: f.0] })
                                     Amount(prev.map { "\(fmt($0[keyPath: f.0])) → \(fmt(last[keyPath: f.0]))" } ?? fmt(last[keyPath: f.0]))
                                         .frame(minWidth: 76, alignment: .trailing)
@@ -63,7 +62,7 @@ struct LabsView: View {
                         }
                     }
                 } else {
-                    SheetNote("还没有化验结果。拿到化验单后录入血脂四项，这里会并列显示同期的饮食均值。").padding(.top, 8)
+                    SheetNote("还没有化验结果").padding(.top, 8)
                 }
             }
             .navigationTitle("化验")
@@ -101,7 +100,7 @@ private struct IntervalGroup: View {
 
     var body: some View {
         if let s = Ledger.intervalSummary(store.entries, foods: store.foods, limits: store.limits, outliers: store.outliers, from: from, to: to) {
-            CardGroup(title: title, footer: "\(s.recordedDays) 个记录日（不含离群日）的同期饮食均值。") {
+            CardGroup(title: title) {
                 LedgerRow(title: "饱和脂肪日均", value: Fmt.sat(s.satMean))
                 LedgerRow(title: "纤维达标天数", value: "约 \(Fmt.roundPct5(s.fiberShare))%")
                 LedgerRow(title: "限额执行", value: "\(s.okWeeks) / \(s.weeks) 周在限额内")
@@ -125,9 +124,9 @@ struct LabFormView: View {
     var body: some View {
         SheetNav(title: lab == nil ? "录入化验结果" : "编辑化验结果", doneLabel: "取消") {
             Page {
-                CardGroup(footer: "单位 mmol/L。化验单上没有的项目可以留空。") {
+                CardGroup() {
                     HStack {
-                        Text("检测日期").font(.body.weight(.semibold))
+                        Text("检测日期").font(.gBody.weight(.semibold))
                         Spacer()
                         DatePicker("检测日期", selection: $date, in: ...Days.date(store.today), displayedComponents: .date)
                             .labelsHidden()
@@ -137,16 +136,16 @@ struct LabFormView: View {
                     .frame(minHeight: 52)
                     ForEach(fields.indices, id: \.self) { i in
                         HStack {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(fields[i].1).font(.body.weight(.semibold))
-                                Text(fields[i].2).font(.footnote).foregroundStyle(Theme.textMuted)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(fields[i].1).font(.gBody.weight(.semibold))
+                                Text(fields[i].2).font(.gSmall).foregroundStyle(Theme.textMuted)
                             }
                             Spacer()
                             TextField("mmol/L", text: $values[i])
                                 .keyboardType(.decimalPad)
                                 .multilineTextAlignment(.trailing)
                                 .monospacedDigit()
-                                .padding(.horizontal, 10)
+                                .padding(.horizontal, 8)
                                 .frame(width: 130, height: 36)
                                 .background(Theme.fill, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                                 .accessibilityLabel(fields[i].2)
@@ -156,11 +155,11 @@ struct LabFormView: View {
                         .padding(.vertical, 8)
                     }
                     HStack {
-                        Text("备注").font(.body.weight(.semibold))
+                        Text("备注").font(.gBody.weight(.semibold))
                         Spacer()
                         TextField("例如 体检中心", text: $note)
                             .multilineTextAlignment(.trailing)
-                            .padding(.horizontal, 10)
+                            .padding(.horizontal, 8)
                             .frame(width: 170, height: 36)
                             .background(Theme.fill, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                             .onChange(of: note) { if note.count > 40 { note = String(note.prefix(40)) } }
@@ -170,8 +169,8 @@ struct LabFormView: View {
                 }
                 .padding(.top, -22)
                 if let error {
-                    Text(error).font(.subheadline).foregroundStyle(Theme.warnText)
-                        .padding(.horizontal, Theme.gutter + Theme.cellX).padding(.top, 10)
+                    Text(error).font(.gSmall).foregroundStyle(Theme.warnText)
+                        .padding(.horizontal, Theme.gutter + Theme.cellX).padding(.top, 8)
                         .accessibilityIdentifier("lab-error")
                 }
                 ButtonRow {

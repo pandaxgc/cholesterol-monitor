@@ -26,10 +26,11 @@ struct TodayView: View {
         let isToday = store.day == store.today
         let meals = Meal.main + (c.dayEntries.contains { $0.meal == .snack } ? [.snack] : [])
         NavigationStack {
-            Page(bottomInset: 150) {
+            VStack(spacing: 0) {
+            Page {
                 if isToday, Calendar.current.component(.hour, from: store.now) < 4 {
                     Text("现在是凌晨，记在 \(Days.label(store.day))")
-                        .font(.footnote).foregroundStyle(Theme.textMuted)
+                        .font(.gSmall).foregroundStyle(Theme.textMuted)
                         .frame(maxWidth: .infinity).padding(.top, 4)
                 }
                 DemoBanner()
@@ -40,36 +41,39 @@ struct TodayView: View {
                 if c.complete { DoneLine(day: c.day) }
                 AdviceGroup(c: c)
             }
-            .overlay(alignment: prefs.hand == .left ? .bottomLeading : .bottomTrailing) { FabGroup() }
+                // 按钮单独占一行，不浮在列表上，静止和滚动时都不会压住数值。
+                HStack(spacing: 0) {
+                    if prefs.hand == .right { Spacer(minLength: 0) }
+                    FabGroup()
+                    if prefs.hand == .left { Spacer(minLength: 0) }
+                }
+            }
+            .background(Theme.bg)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button { router.sheet = .settings } label: { Image(systemName: "person") }
+                    Button { router.sheet = .settings } label: { Icon("person") }
                         .accessibilityLabel("设置")
                         .accessibilityIdentifier("open-settings")
                 }
                 ToolbarItem(placement: .principal) {
                     Button { router.sheet = .dayMenu } label: {
-                        HStack(spacing: 6) {
-                            Text(isToday ? "今日" : dayTitle(store.day)).font(.body.weight(.semibold)).monospacedDigit()
+                        HStack(spacing: 8) {
+                            Text(isToday ? "今日" : dayTitle(store.day)).font(.gBody.weight(.semibold)).monospacedDigit()
                             if c.isOutlier { TagLabel("离群日") }
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 9, weight: .heavy))
-                                .foregroundStyle(Theme.textMuted)
-                                .frame(width: 20, height: 20)
-                                .background(Theme.fillStrong, in: Circle())
+                            Icon("chevron.down", size: 16).foregroundStyle(Theme.textMuted)
                         }
-                        .foregroundStyle(Color.primary)
+                        .foregroundStyle(Theme.text)
                     }
                     .accessibilityLabel("\(isToday ? "今日，" : "")\(dayTitle(store.day))\(c.isOutlier ? "，离群日" : "")。日期与离群日")
                     .accessibilityIdentifier("day-menu")
                 }
                 .sharedBackgroundVisibility(.hidden)
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { store.setDay(Days.add(store.day, -1)) } label: { Image(systemName: "chevron.left") }
+                    Button { store.setDay(Days.add(store.day, -1)) } label: { Icon("chevron.left") }
                         .accessibilityLabel("前一天")
                         .accessibilityIdentifier("prev-day")
-                    Button { store.setDay(Days.add(store.day, 1)) } label: { Image(systemName: "chevron.right") }
+                    Button { store.setDay(Days.add(store.day, 1)) } label: { Icon("chevron.right") }
                         .disabled(isToday)
                         .accessibilityLabel("后一天")
                         .accessibilityIdentifier("next-day")
@@ -97,16 +101,16 @@ private struct BalanceBlock: View {
         Button { router.sheet = .sources } label: {
             VStack(alignment: .leading, spacing: 0) {
                 Text("饱和脂肪余额" + (c.mode == .strict ? " · 严格模式" : ""))
-                    .font(.subheadline)
+                    .font(.gSmall)
                     .foregroundStyle(Theme.textMuted)
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(over ? "已超出约" : "约").font(.title3.weight(.semibold))
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(over ? "已超出约" : "约").font(.gTitle.weight(.semibold))
                     Text("\(abs(bal))")
                         .font(Theme.display)
                         .monospacedDigit()
                         .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(bal)))
                         .accessibilityIdentifier("balance-number")
-                    Text("g").font(.title2.weight(.semibold))
+                    Text("g").font(.gTitle.weight(.semibold))
                 }
                 .foregroundStyle(over ? Theme.warn : Theme.accent)
                 .padding(.top, 4)
@@ -114,10 +118,10 @@ private struct BalanceBlock: View {
                 .animation(reduceMotion ? .easeInOut(duration: 0.2) : .snappy(duration: 0.45), value: bal)
                 HStack(spacing: 12) {
                     ProgressBar(ratio: c.budget > 0 ? Double(used) / c.budget : 0, over: over)
-                    Amount("\(used) / \(budget) g", font: .subheadline)
+                    Amount("\(used) / \(budget) g", font: .gSmall)
                 }
                 Text(relativeLine)
-                    .font(.footnote)
+                    .font(.gSmall)
                     .foregroundStyle(Theme.textMuted)
                     .padding(.top, 8)
                     .fixedSize(horizontal: false, vertical: true)
@@ -190,14 +194,14 @@ private struct Stat: View {
     var note: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label).font(.footnote).foregroundStyle(Theme.textMuted)
-            HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(amountText(value, font: .title3, number: warn ? Theme.warnText : .primary, weight: .bold, unitFont: .subheadline))
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.gSmall).foregroundStyle(Theme.textMuted)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(amountText(value, font: .gTitle, number: warn ? Theme.warnText : Theme.text, weight: .bold, unitFont: .gSmall))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 if let note {
-                    Text(note).font(.footnote).foregroundStyle(warn ? Theme.warnText : Theme.textMuted).lineLimit(1)
+                    Text(note).font(.gSmall).foregroundStyle(warn ? Theme.warnText : Theme.textMuted).lineLimit(1)
                 }
             }
         }
@@ -278,7 +282,7 @@ private struct MealGroup: View {
                     Haptics.light()
                     ToastCenter.shared.show("已记入\(meal.label)：\(food.name)", undo: r.undo)
                 } label: {
-                    LedgerRow(title: food.name, detail: Fmt.servingText(p), sub: "按习惯预填 · 点一下确认",
+                    LedgerRow(title: food.name, detail: Fmt.servingText(p),
                               value: Fmt.sat(Ledger.nutrition(grams: (food.serving(p.servingLabel) ?? food.defaultServingValue).grams * p.multiplier, food: food).sat), style: .prefill) { EmojiIcon(food.emoji) }
                 }
                 .accessibilityLabel("按习惯预填：\(food.name)，\(Fmt.servingText(p))。点按确认入账")
@@ -300,15 +304,15 @@ private struct EntryContextMenu: View {
     let item: SpendItem
 
     var body: some View {
-        Button { router.sheet = .keypad(KeypadRequest(food: item.food, meal: item.entry.meal, entry: item.entry)) } label: { Label("编辑份量", systemImage: "pencil") }
+        Button { router.sheet = .keypad(KeypadRequest(food: item.food, meal: item.entry.meal, entry: item.entry)) } label: { Label("编辑份量", image: Icon.asset("pencil")) }
         Button {
             let e = item.entry
             ToastCenter.shared.show(store.addOneTouch(foodId: e.foodId, servingLabel: e.servingLabel, multiplier: e.multiplier, meal: e.meal).text)
-        } label: { Label("存为 One Touch", systemImage: "bolt") }
+        } label: { Label("存为 One Touch", image: Icon.asset("bolt")) }
         Button(role: .destructive) {
             let undo = store.deleteEntry(item.entry)
             ToastCenter.shared.show("已删除\(item.food.name)", undo: undo)
-        } label: { Label("删除", systemImage: "trash") }
+        } label: { Label("删除", image: Icon.asset("trash")) }
     }
 }
 
@@ -319,8 +323,8 @@ private struct DoneLine: View {
     let day: String
 
     var body: some View {
-        Label(day == store.today ? "今日已记完" : "这一天三餐都记了", systemImage: "checkmark")
-            .font(.subheadline.weight(.semibold))
+        Label(day == store.today ? "今日已记完" : "这一天三餐都记了", image: Icon.asset("checkmark"))
+            .font(.gSmall.weight(.semibold))
             .foregroundStyle(Theme.accent)
             .frame(maxWidth: .infinity)
             .padding(.top, 20)
@@ -345,11 +349,11 @@ private struct AdviceGroup: View {
     var body: some View {
         if c.isOutlier {
             CardGroup(title: "今日建议", headline: true) {
-                LedgerRow(title: "今天不计入日常水位", sub: "离群日不生成建议。")
+                LedgerRow(title: "今天不计入日常水位")
             }
             .accessibilityIdentifier("advice-outlier")
         } else if let a = c.advice {
-            CardGroup(title: "今日建议", footer: c.complete ? nil : "三餐还没记完，建议会随记录更新。", headline: true) {
+            CardGroup(title: "今日建议", headline: true) {
                 RowButton { router.sheet = .why(a) } label: { LedgerRow(title: a.text, chevron: true, style: .advice) }
                     .accessibilityHint("点按查看为什么")
                     .accessibilityIdentifier("advice")
@@ -369,25 +373,24 @@ private struct FabGroup: View {
 
     var body: some View {
         GlassEffectContainer {
-            VStack(spacing: 0) {
+            // 横排放在底部：静止时不压住任何一行的数值，滚到底时页面留出了同样高度的空白。
+            HStack(spacing: 4) {
                 fab("magnifyingglass", "搜索食物", "fab-search") { router.sheet = .add(meal: nil, focusSearch: true) }
-                Rectangle().fill(Theme.border).frame(width: 36, height: 1 / 3)
                 fab("bolt", "One Touch 一触即记", "fab-onetouch") { router.sheet = .oneTouch }
-                Rectangle().fill(Theme.border).frame(width: 36, height: 1 / 3)
                 fab("plus", "添加记录", "fab-add") { router.sheet = .add(meal: nil, focusSearch: false) }
             }
+            .padding(.horizontal, 4)
             .glassEffect(.regular.interactive(), in: Capsule())
         }
         .padding(.horizontal, Theme.gutter)
-        .padding(.bottom, 14)
+        .padding(.bottom, 16)
     }
 
     private func fab(_ symbol: String, _ label: String, _ id: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 20, weight: .medium))
-                .foregroundStyle(Theme.textSecondary)
-                .frame(width: 52, height: 52)
+            Icon(symbol)
+                .foregroundStyle(Theme.text)
+                .frame(width: 48, height: 48)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -49,7 +49,7 @@ struct AddPanelView: View {
                     .accessibilityIdentifier("add-search")
                 let logged = store.entries(on: store.day).filter { $0.meal == meal }.compactMap { store.foods[$0.foodId]?.name }
                 Text(logged.isEmpty ? "\(meal.label)还没有记录" : "\(meal.label)已记：\(logged.joined(separator: "、"))")
-                    .font(.footnote)
+                    .font(.gSmall)
                     .foregroundStyle(Theme.textMuted)
                     .padding(.horizontal, Theme.gutter + Theme.cellX)
                     .padding(.top, 12)
@@ -110,8 +110,8 @@ struct AddPanelView: View {
                                 Text(c.emoji).font(.system(size: 16)).accessibilityHidden(true)
                                 Text(c.name)
                             }
-                            .font(.footnote.weight(on ? .semibold : .medium))
-                            .foregroundStyle(on ? Theme.accentFg : Color.primary)
+                            .font(.gSmall.weight(on ? .semibold : .medium))
+                            .foregroundStyle(on ? Theme.accentFg : Theme.text)
                             .padding(.horizontal, 12)
                             .frame(minHeight: 34)
                             .background(on ? Theme.accent : Theme.surface, in: Capsule())
@@ -161,7 +161,7 @@ struct KeypadView: View {
         let n = Ledger.nutrition(grams: grams, food: food)
         VStack(spacing: 0) {
             ZStack {
-                Text(request.entry == nil ? "份量" : "编辑份量").font(.body.weight(.semibold))
+                Text(request.entry == nil ? "份量" : "编辑份量").font(.gBody.weight(.semibold))
                 HStack {
                     Button("取消") { dismiss() }
                         .buttonStyle(.glass)
@@ -170,7 +170,7 @@ struct KeypadView: View {
                 }
             }
             .padding(.horizontal, Theme.gutter)
-            .padding(.top, 18)
+            .padding(.top, 16)
             .padding(.bottom, 12)
 
             // 表单卡片：食物与数值
@@ -178,16 +178,16 @@ struct KeypadView: View {
                 HStack(spacing: 12) {
                     EmojiIcon(food.emoji)
                     HStack(spacing: 8) {
-                        Text(food.name).font(.body.weight(.semibold))
+                        Text(food.name).font(.gBody.weight(.semibold))
                         GradeBadge(grade: food.grade)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text("约").font(.subheadline.weight(.semibold))
-                        Text("\(Fmt.round(n.sat))").font(.system(size: 28, weight: .heavy, design: .rounded)).monospacedDigit()
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text("约").font(.gSmall.weight(.semibold))
+                        Text("\(Fmt.round(n.sat))").font(.custom("Geist", fixedSize: 28).weight(.bold)).monospacedDigit()
                             .contentTransition(.numericText(value: n.sat))
                             .animation(.snappy, value: Fmt.round(n.sat))
-                        Text("g").font(.subheadline.weight(.semibold))
+                        Text("g").font(.gSmall.weight(.semibold))
                     }
                     .foregroundStyle(Theme.accent)
                     .accessibilityElement(children: .ignore)
@@ -196,12 +196,12 @@ struct KeypadView: View {
                 }
                 Rectangle().fill(Theme.border).frame(height: 1 / 3).padding(.vertical, 8)
                 Text("约 \(Fmt.round(grams)) g · 胆固醇\(Fmt.chol(n.chol)) · 纤维\(Fmt.fiber(n.fiber)) · \(Fmt.transLabel(n.trans))")
-                    .font(.footnote.monospacedDigit())
+                    .font(.gSmall.monospacedDigit())
                     .foregroundStyle(Theme.textMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, Theme.cellX)
-            .padding(.vertical, 14)
+            .padding(.vertical, 16)
             .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.radius, style: .continuous))
             .padding(.horizontal, Theme.gutter)
 
@@ -231,17 +231,17 @@ struct KeypadView: View {
 
     private func keyboard(food: Food) -> some View {
         let mults = Array(Set(Self.mults + [multiplier])).sorted()
-        let cols = Array(repeating: GridItem(.flexible(), spacing: 6), count: 3)
+        let cols = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
         let main = VStack(alignment: .leading, spacing: 0) {
             cap("量具")
-            LazyVGrid(columns: cols, spacing: 6) {
+            LazyVGrid(columns: cols, spacing: 8) {
                 ForEach(food.servings, id: \.label) { s in
                     key(s.label, small: "\(Fmt.number(s.grams)) g", on: s.label == servingLabel) { servingLabel = s.label }
                         .accessibilityIdentifier("serving-\(s.label)")
                 }
             }
             cap("倍数").padding(.top, 4)
-            LazyVGrid(columns: cols, spacing: 6) {
+            LazyVGrid(columns: cols, spacing: 8) {
                 ForEach(mults, id: \.self) { m in
                     key(m == 0.5 ? "½" : "×\(Fmt.number(m))", on: m == multiplier) { multiplier = m }
                         .accessibilityLabel(m == 0.5 ? "半份" : "\(Fmt.number(m)) 倍")
@@ -249,13 +249,13 @@ struct KeypadView: View {
                 }
             }
         }
-        let side = VStack(spacing: 6) {
+        let side = VStack(spacing: 8) {
             Button {
                 ToastCenter.shared.show(store.addOneTouch(foodId: food.id, servingLabel: servingLabel, multiplier: multiplier, meal: meal).text)
             } label: {
-                VStack(spacing: 2) {
-                    Image(systemName: "bolt").font(.system(size: 18, weight: .medium))
-                    Text("One Touch").font(.caption2)
+                VStack(spacing: 4) {
+                    Icon("bolt")
+                    Text("One Touch").font(.gSmall)
                 }
                 .frame(maxWidth: .infinity, minHeight: 50)
                 .background(Theme.kbFn, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -266,7 +266,7 @@ struct KeypadView: View {
             .accessibilityIdentifier("keypad-onetouch")
             Button { submit(food: food) } label: {
                 Text(request.entry == nil ? "记一笔" : "保存")
-                    .font(.body.weight(.semibold))
+                    .font(.gBody.weight(.semibold))
                     .foregroundStyle(Theme.accentFg)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Theme.accent, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -275,30 +275,30 @@ struct KeypadView: View {
             .accessibilityIdentifier("keypad-submit")
         }
         .padding(.top, 24)
-        return HStack(alignment: .top, spacing: 6) {
-            if prefs.hand == .left { side.containerRelativeFrame(.horizontal, count: 4, span: 1, spacing: 6) }
+        return HStack(alignment: .top, spacing: 8) {
+            if prefs.hand == .left { side.containerRelativeFrame(.horizontal, count: 4, span: 1, spacing: 8) }
             main.frame(maxWidth: .infinity)
-            if prefs.hand == .right { side.containerRelativeFrame(.horizontal, count: 4, span: 1, spacing: 6) }
+            if prefs.hand == .right { side.containerRelativeFrame(.horizontal, count: 4, span: 1, spacing: 8) }
         }
         .fixedSize(horizontal: false, vertical: true)
-        .padding(.horizontal, 6)
+        .padding(.horizontal, 8)
         .padding(.top, 8)
         .padding(.bottom, 12)
         .background(Theme.kb, in: UnevenRoundedRectangle(topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous))
-        .foregroundStyle(Color.primary)
+        .foregroundStyle(Theme.text)
     }
 
     private func cap(_ text: String) -> some View {
-        Text(text).font(.caption.weight(.medium)).foregroundStyle(Theme.textMuted).padding(.horizontal, 6).padding(.top, 4).padding(.bottom, 5)
+        Text(text).font(.gSmall.weight(.medium)).foregroundStyle(Theme.textMuted).padding(.horizontal, 8).padding(.top, 4).padding(.bottom, 4)
     }
 
     private func key(_ label: String, small: String? = nil, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 1) {
-                Text(label).font(.body.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
-                if let small { Text(small).font(.caption2.monospacedDigit()).foregroundStyle(on ? Theme.accentFg.opacity(0.85) : Theme.textMuted) }
+            VStack(spacing: 4) {
+                Text(label).font(.gBody.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.7)
+                if let small { Text(small).font(.gSmall.monospacedDigit()).foregroundStyle(on ? Theme.accentFg.opacity(0.85) : Theme.textMuted) }
             }
-            .foregroundStyle(on ? Theme.accentFg : Color.primary)
+            .foregroundStyle(on ? Theme.accentFg : Theme.text)
             .frame(maxWidth: .infinity, minHeight: 50)
             .background(on ? Theme.accent : Theme.key, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             .shadow(color: .black.opacity(0.22), radius: 0, y: 1)
@@ -345,9 +345,8 @@ struct OneTouchView: View {
             : []
         SheetNav(title: "One Touch") {
             Page {
-                SheetNote("点一下即入账，记在 \(Days.label(store.day))，3 秒内可撤销。")
                 if list.isEmpty {
-                    SheetNote("还没有 One Touch。在份量键盘里点“存为 One Touch”，或从下面的高频食物里添加。")
+                    SheetNote("还没有 One Touch")
                 } else {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
                         ForEach(list) { o in tile(o) }
@@ -356,14 +355,14 @@ struct OneTouchView: View {
                     .padding(.top, 12)
                 }
                 if !sugg.isEmpty {
-                    CardGroup(title: "你的高频食物", footer: "根据最近 30 天的记录推荐。", separatorInset: Theme.cellX + CGFloat(prefs.emojiSize) * 1.25 + 12) {
+                    CardGroup(title: "你的高频食物", separatorInset: Theme.cellX + CGFloat(prefs.emojiSize) * 1.25 + 12) {
                         ForEach(sugg) { s in
                             let food = store.foods[s.foodId]!
                             LedgerRow(title: food.name, sub: "\(Fmt.servingText(s)) · \(s.meal.label) · \(s.count) 次", lead: { EmojiIcon(food.emoji) }, trailing: {
                                 Button("添加") {
                                     ToastCenter.shared.show(store.addOneTouch(foodId: s.foodId, servingLabel: s.servingLabel, multiplier: s.multiplier, meal: s.meal).text)
                                 }
-                                .font(.footnote.weight(.medium))
+                                .font(.gSmall.weight(.medium))
                                 .foregroundStyle(Theme.accent)
                                 .buttonStyle(.plain)
                                 .accessibilityLabel("把\(food.name)添加为 One Touch")
@@ -372,7 +371,7 @@ struct OneTouchView: View {
                     }
                 }
                 HStack {
-                    Text("\(list.count) / \(maxOneTouch)").font(.body.monospacedDigit()).foregroundStyle(Theme.textMuted)
+                    Text("\(list.count) / \(maxOneTouch)").font(.gBody.monospacedDigit()).foregroundStyle(Theme.textMuted)
                     Spacer()
                     Button("管理") { router.replace(with: .settings) }.foregroundStyle(Theme.accent)
                 }
@@ -393,16 +392,16 @@ struct OneTouchView: View {
             justLogged = o.id
             ToastCenter.shared.show(r.merged ? "已合并到\(o.meal.label)的\(food.name)" : "已记入\(o.meal.label)：\(food.name)", undo: r.undo)
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 EmojiIcon(food.emoji)
-                Text(food.name).font(.subheadline.weight(.semibold)).padding(.top, 4).lineLimit(1)
-                Text("\(Fmt.servingText(o)) · \(o.meal.label)").font(.caption).foregroundStyle(Theme.textMuted).lineLimit(1)
-                Text(logged ? "已记" : Fmt.sat(sat)).font(.caption.monospacedDigit().weight(logged ? .semibold : .regular))
+                Text(food.name).font(.gSmall.weight(.semibold)).padding(.top, 4).lineLimit(1)
+                Text("\(Fmt.servingText(o)) · \(o.meal.label)").font(.gSmall).foregroundStyle(Theme.textMuted).lineLimit(1)
+                Text(logged ? "已记" : Fmt.sat(sat)).font(.gSmall.monospacedDigit().weight(logged ? .semibold : .regular))
                     .foregroundStyle(logged ? Theme.accent : Theme.textMuted)
             }
-            .foregroundStyle(Color.primary)
+            .foregroundStyle(Theme.text)
             .frame(maxWidth: .infinity, minHeight: 104)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, 8)
             .background(Theme.surface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(logged ? Theme.accent : .clear, lineWidth: 1))
         }

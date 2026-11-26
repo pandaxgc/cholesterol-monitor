@@ -35,7 +35,7 @@ struct ListsView: View {
                         }
                     }
                 }
-                CardGroup(title: "我的常吃", footer: usual.isEmpty ? nil : "按最近 30 天的使用频率排序。点 ⚡ 转为 One Touch。", headline: true, separatorInset: emojiInset) {
+                CardGroup(title: "我的常吃", headline: true, separatorInset: emojiInset) {
                     if usual.isEmpty {
                         LedgerRow(title: "记录几天后，这里会列出你最常吃的食物", style: .guide)
                     }
@@ -49,7 +49,7 @@ struct ListsView: View {
                             Button {
                                 ToastCenter.shared.show(store.addOneTouch(foodId: last.foodId, servingLabel: last.servingLabel, multiplier: last.multiplier, meal: last.meal).text)
                             } label: {
-                                Image(systemName: "bolt").font(.system(size: 17)).foregroundStyle(Theme.accent).frame(width: 44, height: 44)
+                                Icon("bolt").foregroundStyle(Theme.accent).frame(width: 44, height: 44)
                             }
                             .buttonStyle(.plain)
                             .padding(.trailing, 8)
@@ -58,7 +58,7 @@ struct ListsView: View {
                     }
                 }
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("食物库").font(Theme.groupTitle).padding(.horizontal, 8).padding(.bottom, 10).accessibilityAddTraits(.isHeader)
+                    Text("食物库").font(Theme.groupTitle).padding(.horizontal, 8).padding(.bottom, 8).accessibilityAddTraits(.isHeader)
                     SearchField(placeholder: "搜索食物库", text: $query, focused: $searchFocused).accessibilityIdentifier("library-search")
                 }
                 .padding(.horizontal, Theme.gutter)
@@ -75,14 +75,14 @@ struct ListsView: View {
         if !q.isEmpty {
             let hits = store.matchFoods(q)
             if hits.isEmpty {
-                SheetNote("没有找到“\(q)”。").padding(.top, 22)
+                SheetNote("没有找到“\(q)”。").padding(.top, 24)
             } else {
                 CardGroup(separatorInset: emojiInset) {
                     ForEach(hits) { f in RowButton { router.sheet = .foodDetail(f.id) } label: { FoodRow(food: f, chevron: true) } }
                 }
             }
         } else {
-            CardGroup(footer: "共 \(store.foods.count) 种食物，类别按你的使用量排序。营养数值为估算值，尚未对照《中国食物成分表》核实。", separatorInset: emojiInset) {
+            CardGroup(separatorInset: emojiInset) {
                 ForEach(store.categoriesByUse) { c in
                     RowButton { router.sheet = .category(c.id) } label: {
                         LedgerRow(title: c.name, value: "\(store.foods(in: c.id).count) 种", chevron: true) { EmojiIcon(c.emoji) }
@@ -159,13 +159,13 @@ struct FoodDetailView: View {
             let n = food.nutritionPer100g
             let recent = Array(store.entries.filter { $0.foodId == food.id }.map(\.day).uniqued().sorted(by: >).prefix(5))
             Page {
-                HStack(spacing: 14) {
+                HStack(spacing: 16) {
                     Text(food.emoji).font(.system(size: 48)).accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(food.name).font(.title3.weight(.bold))
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(food.name).font(.gTitle.weight(.bold))
                         GradeBadge(grade: food.grade)
                         if !food.aliases.isEmpty {
-                            Text("也叫：\(food.aliases.joined(separator: "、"))").font(.footnote).foregroundStyle(Theme.textMuted)
+                            Text("也叫：\(food.aliases.joined(separator: "、"))").font(.gSmall).foregroundStyle(Theme.textMuted)
                         }
                     }
                 }
@@ -176,13 +176,13 @@ struct FoodDetailView: View {
                         .buttonStyle(PillButtonStyle())
                         .accessibilityIdentifier("food-log")
                 }
-                CardGroup(title: "每 100 g 可食部", footer: "类别：\(store.categories[food.category]?.name ?? "")。显示值已按规则取整。") {
+                CardGroup(title: "每 100 g 可食部") {
                     LedgerRow(title: "饱和脂肪", value: Fmt.sat(n.satFatG))
                     LedgerRow(title: "反式脂肪", value: n.transFatG > 0 ? "含" : "不含")
                     LedgerRow(title: "膳食胆固醇", value: Fmt.chol(n.cholesterolMg))
                     LedgerRow(title: "可溶性纤维", value: Fmt.fiber(n.solubleFiberG))
                 }
-                CardGroup(title: "份量校准", footer: "每个量具绑定一个默认克数。你家的碗大一些或小一些，可以在这里改；留空恢复默认。") {
+                CardGroup(title: "份量校准") {
                     ForEach(food.servings, id: \.label) { sv in
                         let base = store.baseServingGrams(foodId: food.id, label: sv.label) ?? sv.grams
                         LedgerRow(title: sv.label, sub: "默认 \(Fmt.number(base)) g", lead: { EmptyView() }, trailing: {
@@ -216,7 +216,7 @@ private struct GramsField: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             TextField("", text: $text)
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.trailing)
