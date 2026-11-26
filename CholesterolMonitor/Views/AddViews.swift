@@ -276,9 +276,9 @@ struct KeypadView: View {
         }
         .padding(.top, 24)
         return HStack(alignment: .top, spacing: 6) {
-            if prefs.hand == .left { side.frame(maxWidth: .infinity) }
-            main.frame(maxWidth: .infinity).layoutPriority(3)
-            if prefs.hand == .right { side.frame(maxWidth: .infinity) }
+            if prefs.hand == .left { side.containerRelativeFrame(.horizontal, count: 4, span: 1, spacing: 6) }
+            main.frame(maxWidth: .infinity)
+            if prefs.hand == .right { side.containerRelativeFrame(.horizontal, count: 4, span: 1, spacing: 6) }
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 6)
