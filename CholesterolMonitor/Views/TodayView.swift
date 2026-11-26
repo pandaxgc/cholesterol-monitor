@@ -279,7 +279,7 @@ private struct MealGroup: View {
                     ToastCenter.shared.show("已记入\(meal.label)：\(food.name)", undo: r.undo)
                 } label: {
                     LedgerRow(title: food.name, detail: Fmt.servingText(p), sub: "按习惯预填 · 点一下确认",
-                              value: Fmt.sat(Ledger.nutrition(grams: p.grams, food: food).sat), style: .prefill) { EmojiIcon(food.emoji) }
+                              value: Fmt.sat(Ledger.nutrition(grams: (food.serving(p.servingLabel) ?? food.defaultServingValue).grams * p.multiplier, food: food).sat), style: .prefill) { EmojiIcon(food.emoji) }
                 }
                 .accessibilityLabel("按习惯预填：\(food.name)，\(Fmt.servingText(p))。点按确认入账")
                 .accessibilityIdentifier("prefill-\(meal.rawValue)-\(food.id)")
