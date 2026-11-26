@@ -292,7 +292,8 @@ enum ResetMode {
     @discardableResult
     func saveLab(_ lab: LabResult) -> Bool {
         var l = lab
-        if l.id.isEmpty { l.id = uid("lab") }
+        // 编号以毫秒时间戳开头：同一天的多次化验按录入先后排序
+        if l.id.isEmpty { l.id = "lab_\(String(format: "%013.0f", Date().timeIntervalSince1970 * 1000))_\(UUID().uuidString.prefix(4).lowercased())" }
         l.demo = false
         labTable.put(l)
         return commit()
