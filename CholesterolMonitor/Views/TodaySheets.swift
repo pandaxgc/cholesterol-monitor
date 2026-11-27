@@ -123,6 +123,25 @@ struct EntryMenuSheet: View {
     @Environment(\.dismiss) private var dismiss
     let entry: Entry
 
+    @ViewBuilder private func copyButtons(food: Food) -> some View {
+        ForEach(Meal.allCases.filter { $0 != entry.meal }) { m in
+            Button(m.label) {
+                let r = store.addEntry(day: entry.day, meal: m, food: food, servingLabel: entry.servingLabel, multiplier: entry.multiplier, grams: entry.grams, source: .search)
+                dismiss()
+                ToastCenter.shared.show("已复制到\(m.label)", undo: r.undo)
+            }
+            .font(.gSmall.weight(.medium))
+            .foregroundStyle(Theme.text)
+            .lineLimit(1)
+            .fixedSize()
+            .padding(.horizontal, 12)
+            .frame(minHeight: 36)
+            .background(Theme.fill, in: Capsule())
+            .buttonStyle(.plain)
+            .accessibilityLabel("复制到\(m.label)")
+        }
+    }
+
     var body: some View {
         if let food = store.foods[entry.foodId] {
             SheetNav(title: "\(food.name) · \(Fmt.servingText(entry))") {
@@ -133,23 +152,9 @@ struct EntryMenuSheet: View {
                         }
                         .accessibilityIdentifier("entry-edit")
                         LedgerRow(title: "复制到", lead: { RowIcon(symbol: "doc.on.doc") }, trailing: {
-                            HStack(spacing: 8) {
-                                ForEach(Meal.allCases.filter { $0 != entry.meal }) { m in
-                                    Button(m.label) {
-                                        let r = store.addEntry(day: entry.day, meal: m, food: food, servingLabel: entry.servingLabel, multiplier: entry.multiplier, grams: entry.grams, source: .search)
-                                        dismiss()
-                                        ToastCenter.shared.show("已复制到\(m.label)", undo: r.undo)
-                                    }
-                                    .font(.gSmall.weight(.medium))
-                                    .foregroundStyle(Theme.text)
-                                    .lineLimit(1)
-                                    .fixedSize()
-                                    .padding(.horizontal, 12)
-                                    .frame(minHeight: 36)
-                                    .background(Theme.fill, in: Capsule())
-                                    .buttonStyle(.plain)
-                                    .accessibilityLabel("复制到\(m.label)")
-                                }
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: 8) { copyButtons(food: food) }
+                                VStack(alignment: .leading, spacing: 8) { copyButtons(food: food) }
                             }
                         })
                         RowButton {
