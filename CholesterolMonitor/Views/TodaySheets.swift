@@ -142,8 +142,10 @@ struct EntryMenuSheet: View {
                                     }
                                     .font(.gSmall.weight(.medium))
                                     .foregroundStyle(Theme.text)
+                                    .lineLimit(1)
+                                    .fixedSize()
                                     .padding(.horizontal, 12)
-                                    .frame(minHeight: 34)
+                                    .frame(minHeight: 36)
                                     .background(Theme.fill, in: Capsule())
                                     .buttonStyle(.plain)
                                     .accessibilityLabel("复制到\(m.label)")

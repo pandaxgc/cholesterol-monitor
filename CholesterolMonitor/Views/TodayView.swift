@@ -171,18 +171,20 @@ struct ProgressBar: View {
 
 private struct SummaryStats: View {
     let c: DayContext
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         let t = c.spend.total
+        let column = GridItem(.flexible(), alignment: .topLeading)
         let transFoods = c.spend.items.filter { $0.food.nutritionPer100g.transFatG > 0 }.map(\.food.name).uniqued()
         let cholOver = t.chol > Budget.cholMg
-        LazyVGrid(columns: [GridItem(.flexible(), alignment: .topLeading), GridItem(.flexible(), alignment: .topLeading)], alignment: .leading, spacing: 12) {
+        LazyVGrid(columns: typeSize.isAccessibilitySize ? [column] : [column, column], alignment: .leading, spacing: 12) {
             Stat(label: "膳食胆固醇", value: "\(Fmt.chol(t.chol).replacingOccurrences(of: " mg", with: "")) / \(Int(Budget.cholMg)) mg", warn: cholOver, note: cholOver ? "超出" : nil)
             Stat(label: "可溶性纤维", value: "\(Fmt.fiber(t.fiber).replacingOccurrences(of: " g", with: "")) / \(Int(Budget.fiberG)) g")
             Stat(label: "反式脂肪", value: transFoods.isEmpty ? "不含" : "含", warn: !transFoods.isEmpty, note: transFoods.isEmpty ? nil : transFoods.joined(separator: "、"))
             Stat(label: "你的日常水位", value: c.base.map { "每天\(Fmt.sat($0.sat))" } ?? "—", note: c.base == nil ? "记满 5 天后显示" : nil)
         }
-        .padding(.horizontal, Theme.gutter + 2)
+        .padding(.horizontal, Theme.gutter)
         .padding(.top, 16)
     }
 }

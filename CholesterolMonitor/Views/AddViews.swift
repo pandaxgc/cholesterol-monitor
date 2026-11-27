@@ -267,6 +267,9 @@ struct KeypadView: View {
             Button { submit(food: food) } label: {
                 Text(request.entry == nil ? "记一笔" : "保存")
                     .font(.gBody.weight(.semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .padding(.horizontal, 4)
                     .foregroundStyle(Theme.accentFg)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Theme.accent, in: RoundedRectangle(cornerRadius: 8, style: .continuous))

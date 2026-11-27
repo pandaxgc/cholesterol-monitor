@@ -238,10 +238,11 @@ struct LedgerRow<Lead: View, Trailing: View>: View {
                 }
                 // 大字号下数值换到第二行
                 if typeSize.isAccessibilitySize, let value { Amount(value, warn: valueWarn).opacity(style == .prefill ? 0.5 : 1) }
+                if typeSize.isAccessibilitySize { trailing }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             if !typeSize.isAccessibilitySize, let value { Amount(value, warn: valueWarn).opacity(style == .prefill ? 0.5 : 1) }
-            trailing
+            if !typeSize.isAccessibilitySize { trailing }
             if chevron {
                 Icon("chevron.right").foregroundStyle(Theme.textMuted)
             }
